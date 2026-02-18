@@ -1,0 +1,99 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+dist/*
+*.egg-info/
+*.egg
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg
+
+# Virtual Environment
+venv/
+env/
+ENV/
+.venv
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# 环境变量和敏感配置
+.env
+*.env
+.env.local
+.env.*.local
+config.json
+secrets.yaml
+secrets.yml
+
+# 测试和覆盖率
+.coverage
+.pytest_cache/
+htmlcov/
+.tox/
+
+# 日志
+*.log
+logs/
+*.log.*
+
+# 临时文件
+*.tmp
+*.temp
+.cache/
+
+# 打包文件 (保留源,忽略编译产物)
+*.tar.gz
+*.zip
+*.tar.bz2
+*.sha256
+
+# 备份文件
+*.bak
+*.backup
+*~
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Linux
+*~
+.nfs*
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# 项目特定
+memory/
+*.db
+*.sqlite
+*.sqlite3
+
+# 文档草稿
+EMAIL_TEMPLATE.md
+QUICKSTART.txt
+发送说明.md
+CLAUDE_CODE_INTEGRATION_COMPLETE.md
+SYNC_WITH_OPENCLAW.md
+FINAL_SUMMARY.md
+PROJECT_STRUCTURE.md
