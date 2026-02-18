@@ -24,7 +24,8 @@ from mem0_wrapper import Mem0Client
 # 配置日志
 logging.basicConfig(
     level=getattr(logging, os.getenv("LOG_LEVEL", "INFO").upper(), logging.INFO),
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    stream=sys.stderr,
 )
 logger = logging.getLogger(__name__)
 
@@ -239,5 +240,5 @@ if __name__ == "__main__":
     logger.info(f"📝 Mem0 API Base: {os.getenv('MEM0_BASE_URL', 'https://api.mem0.ai')}")
     logger.info(f"👤 默认用户: {os.getenv('MEMORY_DEFAULT_USER_ID', 'default')}")
 
-    # 使用 stdio 传输（FastMCP 会自动检测）
-    mcp.run()
+    # 显式使用 stdio 传输，避免自动检测在某些环境下误判。
+    mcp.run(transport="stdio")
