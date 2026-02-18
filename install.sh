@@ -12,6 +12,7 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 RED='\033[0;31m'
 NC='\033[0m' # No Color
+CODEX_MCP_STATUS="未执行"
 
 # 检查 Python 3
 check_python() {
@@ -54,6 +55,32 @@ install_dependencies() {
     source venv/bin/activate
     pip install -r requirements.txt
     echo -e "${GREEN}✓ 依赖安装完成${NC}"
+}
+
+read_env_value() {
+    local key="$1"
+    if [ ! -f ".env" ]; then
+        echo ""
+        return
+    fi
+
+    local line
+    line=$(grep -E "^[[:space:]]*(export[[:space:]]+)?${key}=" .env | tail -n 1 || true)
+    if [ -z "$line" ]; then
+        echo ""
+        return
+    fi
+
+    local value="${line#*=}"
+    value=$(echo "$value" | sed -E 's/^[[:space:]]+|[[:space:]]+$//g')
+
+    if [[ "$value" =~ ^\".*\"$ ]]; then
+        value="${value:1:${#value}-2}"
+    elif [[ "$value" =~ ^\'.*\'$ ]]; then
+        value="${value:1:${#value}-2}"
+    fi
+
+    echo "$value"
 }
 
 # 配置环境变量
@@ -99,10 +126,68 @@ test_server() {
     echo -e "${GREEN}✓ 服务器测试通过${NC}"
 }
 
+register_codex_mcp() {
+    echo -e "${YELLOW}注册 Codex 用户级 MCP 配置...${NC}"
+
+    if ! command -v codex &> /dev/null; then
+        CODEX_MCP_STATUS="跳过: 未检测到 codex CLI"
+        echo -e "${YELLOW}⚠️  未检测到 codex，跳过用户级 MCP 注册${NC}"
+        return
+    fi
+
+    SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    LAUNCHER="$SCRIPT_DIR/codex-launcher.sh"
+    SERVER_NAME="${CODEX_MCP_SERVER_NAME:-memory}"
+
+    chmod +x "$LAUNCHER" 2>/dev/null || true
+
+    if codex mcp get "$SERVER_NAME" >/dev/null 2>&1; then
+        CODEX_MCP_STATUS="已存在: ${SERVER_NAME} (未覆盖)"
+        echo -e "${YELLOW}⚠️  Codex MCP '${SERVER_NAME}' 已存在，未覆盖${NC}"
+        echo "   如需覆盖可手动执行:"
+        echo "   codex mcp remove ${SERVER_NAME}"
+        echo "   然后重新运行 ./install.sh"
+        return
+    fi
+
+    MEM0_BASE_URL_VALUE=$(read_env_value "MEM0_BASE_URL")
+    MEM0_API_KEY_VALUE=$(read_env_value "MEM0_API_KEY")
+    MEMORY_DEFAULT_USER_ID_VALUE=$(read_env_value "MEMORY_DEFAULT_USER_ID")
+    LOG_LEVEL_VALUE=$(read_env_value "LOG_LEVEL")
+
+    if [ -z "$MEM0_BASE_URL_VALUE" ]; then
+        MEM0_BASE_URL_VALUE="https://api.mem0.ai"
+    fi
+    if [ -z "$LOG_LEVEL_VALUE" ]; then
+        LOG_LEVEL_VALUE="INFO"
+    fi
+
+    CMD=(codex mcp add "$SERVER_NAME")
+    CMD+=(--env "MEM0_BASE_URL=${MEM0_BASE_URL_VALUE}")
+    if [ -n "$MEM0_API_KEY_VALUE" ]; then
+        CMD+=(--env "MEM0_API_KEY=${MEM0_API_KEY_VALUE}")
+    fi
+    if [ -n "$MEMORY_DEFAULT_USER_ID_VALUE" ]; then
+        CMD+=(--env "MEMORY_DEFAULT_USER_ID=${MEMORY_DEFAULT_USER_ID_VALUE}")
+    fi
+    CMD+=(--env "LOG_LEVEL=${LOG_LEVEL_VALUE}")
+    CMD+=(-- "$LAUNCHER")
+
+    if "${CMD[@]}" >/dev/null 2>&1; then
+        CODEX_MCP_STATUS="已注册: ${SERVER_NAME}"
+        echo -e "${GREEN}✓ Codex 用户级 MCP 已注册 (${SERVER_NAME})${NC}"
+    else
+        CODEX_MCP_STATUS="失败: codex mcp add 执行失败"
+        echo -e "${YELLOW}⚠️  Codex MCP 自动注册失败，请手动执行:${NC}"
+        echo "   codex mcp add ${SERVER_NAME} --env MEM0_BASE_URL=${MEM0_BASE_URL_VALUE} --env MEM0_API_KEY=你的API-Key --env MEMORY_DEFAULT_USER_ID=你的用户ID --env LOG_LEVEL=${LOG_LEVEL_VALUE} -- ${LAUNCHER}"
+    fi
+}
+
 # 打印配置信息
 print_config() {
     SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-    LAUNCHER="$SCRIPT_DIR/claude-code-launcher.sh"
+    CLAUDE_LAUNCHER="$SCRIPT_DIR/claude-code-launcher.sh"
+    CODEX_LAUNCHER="$SCRIPT_DIR/codex-launcher.sh"
 
     echo ""
     echo "================================"
@@ -110,14 +195,20 @@ print_config() {
     echo "================================"
     echo ""
     echo "📍 项目路径: $SCRIPT_DIR"
-    echo "📝 启动脚本: $LAUNCHER"
+    echo "📝 Claude 启动脚本: $CLAUDE_LAUNCHER"
+    echo "📝 Codex 启动脚本:  $CODEX_LAUNCHER"
+    echo "🔧 Codex MCP 状态:   $CODEX_MCP_STATUS"
     echo ""
     echo "📋 下一步操作:"
     echo ""
     echo "1. 编辑配置文件:"
     echo "   nano .env"
     echo ""
-    echo "2. 添加到 Claude Code (~/.claude.json):"
+    echo "2. Codex:"
+    echo "   已尝试自动注册到 ~/.codex/config.toml"
+    echo "   验证命令: codex mcp list"
+    echo ""
+    echo "3. 添加到 Claude Code (~/.claude.json):"
     echo ""
     cat << 'EOF'
 {
@@ -135,7 +226,7 @@ print_config() {
 }
 EOF
     echo ""
-    echo "3. 重启 Claude Code"
+    echo "4. 重启 Codex/Claude Code"
     echo ""
     echo "详细文档: README.md"
     echo "================================"
@@ -149,6 +240,7 @@ main() {
     install_dependencies
     setup_config
     test_server
+    register_codex_mcp
     print_config
 }
 

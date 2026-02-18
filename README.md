@@ -35,6 +35,7 @@ chmod +x install.sh
 - ✅ 安装依赖
 - ✅ 生成配置文件
 - ✅ 测试服务器
+- ✅ 尝试注册 Codex 用户级 MCP (`~/.codex/config.toml`)
 
 ### 配置
 
@@ -91,13 +92,34 @@ pwd
 
 > 📖 **详细指南:** [Claude Code 完整指南](docs/CLAUDE_CODE_GUIDE.md)
 
+## Codex 集成
+
+安装脚本会尝试自动注册 Codex 用户级 MCP。如果你需要手动注册，可执行：
+
+```bash
+codex mcp add memory \
+  --env MEM0_BASE_URL=https://api.mem0.ai \
+  --env MEM0_API_KEY=m0-your-api-key-here \
+  --env MEMORY_DEFAULT_USER_ID=your-user-id \
+  --env LOG_LEVEL=INFO \
+  -- /完整路径/memory-mcp-server/codex-launcher.sh
+```
+
+查看注册结果：
+
+```bash
+codex mcp list
+```
+
+> 📖 **详细指南:** [Codex 集成指南](docs/CODEX_INTEGRATION.md)
+
 ---
 
 ## 📚 文档
 
 - **[Claude Code 指南](docs/CLAUDE_CODE_GUIDE.md)** - Claude Code 集成详细教程
 - **[OpenClaw 集成](docs/OPENCLOW_INTEGRATION.md)** - OpenClaw 深度集成指南
-- **[Codex 集成](docs/CODEX_INTEGRATION.md)** - Codex AI 助手集成(开发中)
+- **[Codex 集成](docs/CODEX_INTEGRATION.md)** - Codex AI 助手集成（可用，实验性）
 - **[API 参考](docs/API_REFERENCE.md)** - 完整 API 文档
 - **[故障排查](docs/TROUBLESHOOTING.md)** - 常见问题解决
 
@@ -183,6 +205,7 @@ memory-mcp-server/
 ├── requirements.txt           # Python 依赖
 ├── install.sh                 # 一键安装脚本
 ├── claude-code-launcher.sh    # Claude Code 启动脚本
+├── codex-launcher.sh          # Codex 启动脚本
 ├── add_memory.sh              # 添加记忆测试脚本
 ├── list_memory.sh             # 列出记忆测试脚本
 ├── search_memory.sh           # 搜索记忆测试脚本

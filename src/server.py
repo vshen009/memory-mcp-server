@@ -11,6 +11,8 @@ import os
 import sys
 from pathlib import Path
 from datetime import datetime
+from functools import partial
+from typing import List, Optional
 
 # MCP SDK imports
 from mcp.server.fastmcp import FastMCP
@@ -21,7 +23,7 @@ from mem0_wrapper import Mem0Client
 
 # 配置日志
 logging.basicConfig(
-    level=logging.INFO,
+    level=getattr(logging, os.getenv("LOG_LEVEL", "INFO").upper(), logging.INFO),
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
@@ -44,10 +46,16 @@ def get_mem0_client():
     return _mem0_client
 
 
+async def run_blocking(func, *args, **kwargs):
+    """Run blocking IO in a threadpool to keep MCP handlers responsive."""
+    loop = asyncio.get_running_loop()
+    return await loop.run_in_executor(None, partial(func, *args, **kwargs))
+
+
 @mcp.tool(description="添加新记忆。当用户提供关于自己、偏好、或任何未来可能有用的信息时调用此方法。用户也可以主动要求记住某些事情。")
 async def memory_add(
     text: str,
-    user_id: str = None,
+    user_id: Optional[str] = None,
     scope: str = "general",
     source: str = "mcp-server"
 ) -> str:
@@ -68,7 +76,8 @@ async def memory_add(
     """
     try:
         client = get_mem0_client()
-        result = client.add(
+        result = await run_blocking(
+            client.add,
             text=text,
             user_id=user_id,
             metadata={
@@ -94,7 +103,7 @@ async def memory_add(
 @mcp.tool(description="搜索已存储的记忆。每次用户提问时都应该调用此方法来查找相关信息。")
 async def memory_search(
     query: str,
-    user_id: str = None,
+    user_id: Optional[str] = None,
     top_k: int = 5,
     scope: str = ""
 ) -> str:
@@ -115,7 +124,8 @@ async def memory_search(
     """
     try:
         client = get_mem0_client()
-        result = client.search(
+        result = await run_blocking(
+            client.search,
             query=query,
             user_id=user_id,
             top_k=top_k,
@@ -138,7 +148,7 @@ async def memory_search(
 
 @mcp.tool(description="列出用户的所有记忆。用于查看或批量处理记忆。")
 async def memory_list(
-    user_id: str = None,
+    user_id: Optional[str] = None,
     scope: str = "",
     limit: int = 20
 ) -> str:
@@ -158,7 +168,8 @@ async def memory_list(
     """
     try:
         client = get_mem0_client()
-        result = client.list(
+        result = await run_blocking(
+            client.list,
             user_id=user_id,
             scope=scope,
             limit=limit
@@ -180,8 +191,8 @@ async def memory_list(
 
 @mcp.tool(description="删除指定的记忆。提供记忆 ID 列表来删除特定记忆。")
 async def memory_delete(
-    memory_ids: list[str],
-    user_id: str = None
+    memory_ids: List[str],
+    user_id: Optional[str] = None
 ) -> str:
     # 使用环境变量中的默认用户ID
     if user_id is None:
@@ -203,7 +214,7 @@ async def memory_delete(
 
         for memory_id in memory_ids:
             try:
-                client.delete(memory_id)
+                await run_blocking(client.delete, memory_id)
                 deleted_count += 1
             except Exception as e:
                 errors.append(f"{memory_id}: {str(e)}")

@@ -1,185 +1,109 @@
 # Codex 集成指南
 
-> **状态:** 🚧 草稿 - 待开发
-> **计划版本:** v1.1.0
-> **优先级:** 中
+> **状态:** ✅ 可用（实验性）
+> **适用版本:** Memory MCP Server v1.0.0+
 
 ---
 
-## 概述
+## 核心说明
 
-Memory MCP Server 计划支持 Codex AI 助手,实现跨平台记忆同步。
+本项目对 Codex 的集成方式是 **MCP 标准接入**，不是额外封装 Codex API。
 
-**当前状态:** 规划中
+你需要做的只有两件事：
 
-**预计完成:** TBD
-
----
-
-## 功能规划
-
-### Phase 1: 基础集成 (计划中)
-
-- [ ] Codex API 调用封装
-- [ ] 记忆推送功能
-- [ ] 记忆拉取功能
-- [ ] 基础文档
-
-### Phase 2: 深度集成 (待定)
-
-- [ ] Codex 技能包集成
-- [ ] 自动化任务触发
-- [ ] 双向同步优化
-
-### Phase 3: 高级特性 (未来)
-
-- [ ] 智能去重
-- [ ] 记忆分类
-- [ ] 多模态支持
+1. 启动本 MCP Server（stdio）
+2. 在 Codex 的 MCP 配置中注册该服务
 
 ---
 
-## 技术调研
+## 快速接入
 
-### Codex API
+### 1) 安装并配置项目
 
-**待调研:**
-- [ ] Codex API 文档
-- [ ] 认证机制
-- [ ] 速率限制
-- [ ] 数据格式
-
-### 集成方案
-
-**候选方案:**
-
-1. **直接 API 调用**
-   - 优点: 简单直接
-   - 缺点: 需要处理错误和重试
-
-2. **SDK 集成**
-   - 优点: 官方支持
-   - 缺点: 依赖第三方
-
-3. **Webhook 模式**
-   - 优点: 实时性好
-   - 缺点: 需要公网服务器
-
----
-
-## 设计草图
-
-### 架构图 (待完善)
-
-```
-┌─────────┐     ┌──────────────┐     ┌─────────┐
-│  Codex  │────▶│  Memory MCP  │────▶│ Mem0    │
-│  AI     │     │    Server    │     │ Cloud   │
-└─────────┘     └──────────────┘     └─────────┘
-     ▲                                    │
-     │                                    │
-     └────────────────────────────────────┘
-              双向同步 (计划中)
+```bash
+cd memory-mcp-server
+./install.sh
 ```
 
-### 数据流 (待设计)
+`install.sh` 会尝试自动注册用户级 Codex MCP（写入 `~/.codex/config.toml`）。
 
-**推送:**
-```
-Codex → Memory MCP Server → Mem0 Cloud
+编辑 `.env`：
+
+```env
+MEM0_BASE_URL=https://api.mem0.ai
+MEM0_API_KEY=m0-your-api-key-here
+MEMORY_DEFAULT_USER_ID=your-user-id
+LOG_LEVEL=INFO
 ```
 
-**拉取:**
+### 2) 验证用户级注册
+
+```bash
+codex mcp list
+codex mcp get memory
 ```
-Mem0 Cloud → Memory MCP Server → Codex
+
+### 3) 手动注册（仅自动注册失败时）
+
+```bash
+codex mcp add memory \
+  --env MEM0_BASE_URL=https://api.mem0.ai \
+  --env MEM0_API_KEY=m0-your-api-key-here \
+  --env MEMORY_DEFAULT_USER_ID=your-user-id \
+  --env LOG_LEVEL=INFO \
+  -- /完整路径/memory-mcp-server/codex-launcher.sh
 ```
 
 ---
 
-## 开发计划
+## 工具列表
 
-### 里程碑 1: API 对接 (Week 1-2)
+接入成功后，Codex 应可看到以下工具：
 
-- [ ] 研究 Codex API 文档
-- [ ] 实现基础调用封装
-- [ ] 编写单元测试
-
-### 里程碑 2: 核心功能 (Week 3-4)
-
-- [ ] 实现记忆推送
-- [ ] 实现记忆拉取
-- [ ] 错误处理和重试
-
-### 里程碑 3: 集成测试 (Week 5-6)
-
-- [ ] 端到端测试
-- [ ] 性能测试
-- [ ] 文档完善
-
-### 里程碑 4: 发布 (Week 7-8)
-
-- [ ] Beta 测试
-- [ ] 问题修复
-- [ ] 正式发布
+- `memory_add`
+- `memory_search`
+- `memory_list`
+- `memory_delete`
 
 ---
 
-## 待解决问题
+## 验证流程
 
-### 技术问题
+建议按顺序验证：
 
-1. **认证方式**
-   - API Key vs OAuth
-   - Token 刷新机制
-
-2. **数据格式**
-   - Codex 记忆格式
-   - 与 Mem0 格式转换
-
-3. **速率限制**
-   - Codex API 限制
-   - 批量请求优化
-
-### 非技术问题
-
-1. **合规性**
-   - 数据隐私
-   - 用户同意
-
-2. **成本**
-   - API 调用费用
-   - 存储成本
+1. 添加记忆：`memory_add`
+2. 搜索记忆：`memory_search`
+3. 列出记忆：`memory_list`
+4. 删除记忆：`memory_delete`
 
 ---
 
-## 参考资料
+## 常见问题
 
-- [Codex 官方文档](#) (待添加)
-- [Memory MCP Server API](./API_REFERENCE.md)
-- [OpenClaw 集成案例](./OPENCLOW_INTEGRATION.md)
+### 看不到工具
 
----
+- 确认 Codex 已重启
+- 确认 `codex mcp list` 中包含 `memory`
+- 确认 `codex-launcher.sh` 有执行权限
 
-## 贡献指南
+```bash
+chmod +x codex-launcher.sh
+```
 
-如果你对 Codex 集成有兴趣,欢迎:
+### 报 API Key 错误
 
-1. 参与 [GitHub Discussion](https://github.com/vshen009/memory-mcp-server/discussions)
-2. 提交 Issue 和 PR
-3. 分享使用经验
+- 检查 `MEM0_API_KEY` 是否有效
+- 检查是否把配置写到了正确的配置文件
 
----
+### 搜不到记忆
 
-**更新日志:**
-
-- 2026-02-18: 初始草稿创建
-
-**维护者:** Vincent Ye
+- 检查 `MEMORY_DEFAULT_USER_ID` 是否与写入时一致
+- 用更通用关键词再试一次
 
 ---
 
-**TODO:**
-- [ ] 调研 Codex API
-- [ ] 设计集成方案
-- [ ] 编写技术规范
-- [ ] 制定开发时间表
+## 兼容性说明
+
+- 该接入方式不影响现有 Claude Code 配置
+- 该接入方式不影响 OpenClaw 同步流程
+- Codex、Claude Code 可同时指向同一个 Memory MCP Server
