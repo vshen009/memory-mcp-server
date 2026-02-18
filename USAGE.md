@@ -17,7 +17,7 @@ Memory MCP Server 是一个统一的内存管理系统，通过 MCP (Model Conte
 ### 1. 安装依赖
 
 ```bash
-cd /home/trinity/happpy/memory-mcp-server
+cd /path/to/memory-mcp-server
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
@@ -72,7 +72,7 @@ Memory MCP Server - 客户端测试
   "mcpServers": {
     "memory": {
       "command": "python",
-      "args": ["/home/trinity/happpy/memory-mcp-server/src/server.py"],
+      "args": ["/path/to/memory-mcp-server/src/server.py"],
       "env": {
         "MEM0_API_KEY": "m0-your-api-key-here",
         "MEMORY_DEFAULT_USER_ID": "your-user-id",
@@ -89,7 +89,7 @@ Memory MCP Server - 客户端测试
 
 ```bash
 #!/bin/bash
-cd /home/trinity/happpy/memory-mcp-server
+cd /path/to/memory-mcp-server
 source venv/bin/activate
 python src/server.py
 ```
@@ -100,7 +100,7 @@ python src/server.py
 {
   "mcpServers": {
     "memory": {
-      "command": "/home/trinity/happpy/memory-mcp-server/start-mcp-server.sh"
+      "command": "/path/to/memory-mcp-server/start-mcp-server.sh"
     }
   }
 }
@@ -162,7 +162,7 @@ Claude 会自动调用 `memory_search` 工具查找相关记忆。
 ```python
 memory_add(
     text="用户喜欢编程，主要使用 Python",
-    user_id="vincent",
+    user_id="your-user-id",
     scope="preferences"
 )
 ```
@@ -180,7 +180,7 @@ memory_add(
 ```python
 memory_search(
     query="用户喜欢什么编程语言？",
-    user_id="vincent",
+    user_id="your-user-id",
     top_k=3
 )
 ```

@@ -141,7 +141,7 @@ codex mcp list
 ```python
 memory_add(
     text="用户喜欢编程，主要使用 Python 和 TypeScript",
-    user_id="vincent",
+    user_id="your-user-id",
     scope="preferences"
 )
 ```
@@ -160,7 +160,7 @@ memory_add(
 ```python
 memory_search(
     query="用户喜欢什么编程语言？",
-    user_id="vincent",
+    user_id="your-user-id",
     top_k=3
 )
 ```

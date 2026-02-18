@@ -145,7 +145,7 @@ Memory MCP Server - 客户端测试
 
 ```bash
 # 1. 安装依赖
-cd /home/trinity/happpy/memory-mcp-server
+cd /path/to/memory-mcp-server
 source venv/bin/activate
 pip install -r requirements.txt
 
@@ -256,6 +256,6 @@ python test_client.py
 
 ---
 
-**项目位置：** `/home/trinity/happpy/memory-mcp-server`
+**项目位置：** `/path/to/memory-mcp-server`
 
 **下一步建议：** 配置 Claude Code 并开始使用！查看 [USAGE.md](./USAGE.md) 了解详情。

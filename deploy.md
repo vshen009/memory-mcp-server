@@ -6,13 +6,13 @@
 
 ```bash
 # 方法 A：使用 rsync（推荐）
-rsync -avz /home/trinity/happpy/memory-mcp-server/ user@new-computer:/path/to/memory-mcp-server/
+rsync -avz /path/to/memory-mcp-server/ user@new-computer:/path/to/memory-mcp-server/
 
 # 方法 B：使用 scp
-scp -r /home/trinity/happpy/memory-mcp-server user@new-computer:/path/to/
+scp -r /path/to/memory-mcp-server user@new-computer:/path/to/
 
 # 方法 C：打包后传输
-cd /home/trinity/happpy
+cd /path/to
 tar czf memory-mcp-server.tar.gz memory-mcp-server/
 # 然后复制 memory-mcp-server.tar.gz 到新电脑并解压
 ```

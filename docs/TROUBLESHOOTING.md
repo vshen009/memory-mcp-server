@@ -109,7 +109,7 @@ API error 401: Unauthorized
 cat .env | grep MEM0_API_KEY
 
 # 2. 确认格式: m0-xxxx
-# 正确: m0-keuN7KwXeYWGuYQZgkXIY5ALoWbXJj3f4dckSwjJ
+# 正确: m0-your-api-key-here
 # 错误: m0-keuN7KwXe... (被截断)
 
 # 3. 重新生成 API Key
@@ -172,10 +172,10 @@ grep MEMORY_DEFAULT_USER_ID .env
 ```bash
 # 确保使用相同的 user_id
 # 方式1: 修改 .env
-MEMORY_DEFAULT_USER_ID=vincent-main
+MEMORY_DEFAULT_USER_ID=your-user-id
 
 # 方式2: 调用时指定
-./search_memory.sh "query" --user-id vincent-main
+./search_memory.sh "query" --user-id your-user-id
 ```
 
 ---

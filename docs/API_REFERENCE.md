@@ -37,7 +37,7 @@ Memory MCP Server 提供 4 个核心工具,通过 MCP 协议与 AI 客户端通�
   "result": {
     "id": "uuid",
     "memory": "记忆内容",
-    "user_id": "vincent-main",
+    "user_id": "your-user-id",
     "metadata": {...}
   },
   "message": "记忆添加成功"
@@ -51,7 +51,7 @@ Memory MCP Server 提供 4 个核心工具,通过 MCP 协议与 AI 客户端通�
 {
   "text": "Vincent 喜欢用 Python 开发",
   "scope": "preferences",
-  "user_id": "vincent-main"
+  "user_id": "your-user-id"
 }
 ```
 
@@ -62,7 +62,7 @@ Memory MCP Server 提供 4 个核心工具,通过 MCP 协议与 AI 客户端通�
   "result": {
     "id": "1df7b95a-4518-4968-bb74-74c1e521fb7a",
     "memory": "Vincent 喜欢用 Python 开发",
-    "user_id": "vincent-main"
+    "user_id": "your-user-id"
   },
   "message": "记忆添加成功"
 }
@@ -110,7 +110,7 @@ Memory MCP Server 提供 4 个核心工具,通过 MCP 协议与 AI 客户端通�
 ```json
 {
   "query": "Vincent 喜欢什么编程语言?",
-  "user_id": "vincent-main",
+  "user_id": "your-user-id",
   "top_k": 3
 }
 ```
@@ -170,7 +170,7 @@ Memory MCP Server 提供 4 个核心工具,通过 MCP 协议与 AI 客户端通�
 **调用:**
 ```json
 {
-  "user_id": "vincent-main",
+  "user_id": "your-user-id",
   "limit": 50
 }
 ```
@@ -211,7 +211,7 @@ Memory MCP Server 提供 4 个核心工具,通过 MCP 协议与 AI 客户端通�
     "1df7b95a-4518-4968-bb74-74c1e521fb7a",
     "4adc3fe4-9c32-46ce-83de-3987f2c7690a"
   ],
-  "user_id": "vincent-main"
+  "user_id": "your-user-id"
 }
 ```
 
@@ -224,7 +224,7 @@ Memory MCP Server 提供 4 个核心工具,通过 MCP 协议与 AI 客户端通�
 **必需:** 是 (Cloud 模式)
 **说明:** Mem0 Cloud API 密钥
 **获取:** https://platform.mem0.ai
-**示例:** `m0-keuN7KwXeYWGuYQZgkXIY5ALoWbXJj3f4dckSwjJ`
+**示例:** `m0-your-api-key-here`
 
 ### MEM0_BASE_URL
 
@@ -250,7 +250,7 @@ Memory MCP Server 提供 4 个核心工具,通过 MCP 协议与 AI 客户端通�
 **必需:** 否
 **默认:** `default`
 **说明:** 默认用户ID
-**示例:** `vincent-main`
+**示例:** `your-user-id`
 
 ### LOG_LEVEL
 
@@ -290,9 +290,9 @@ Memory MCP Server 提供 4 个核心工具,通过 MCP 协议与 AI 客户端通�
 
 使用有意义的 user_id:
 ```
-vincent-main     # 主用户
-vincent-work     # 工作账户
-vincent-personal # 个人账户
+your-user-id     # 主用户
+your-work-user-id     # 工作账户
+your-personal-user-id # 个人账户
 ```
 
 ### 2. 记忆分类

@@ -168,6 +168,7 @@ OpenClaw 是一个强大的 AI 工作流系统,Memory MCP Server 可以与其深
 MEM0_API_KEY=m0-your-api-key-here
 MEM0_BASE_URL=https://api.mem0.ai
 MEM0_API_MODE=auto
+MEMORY_DEFAULT_USER_ID=your-user-id
 
 # (可选) 组织和项目
 # MEM0_ORG_ID=...
@@ -178,23 +179,24 @@ MEM0_API_MODE=auto
 
 ```bash
 cd ~/.openclaw/workspace
+USER_ID="${MEMORY_DEFAULT_USER_ID:-your-user-id}"
 
 # 测试添加
 python3 scripts/mem0_client.py add \
   --text "OpenClaw 集成测试" \
-  --user-id vincent-main \
+  --user-id "${USER_ID}" \
   --scope project-continuity \
   --source openclaw-manual
 
 # 测试搜索
 python3 scripts/mem0_client.py search \
   --query "OpenClaw 集成" \
-  --user-id vincent-main \
+  --user-id "${USER_ID}" \
   --top-k 5
 
 # 测试列表
 python3 scripts/mem0_client.py list \
-  --user-id vincent-main \
+  --user-id "${USER_ID}" \
   --page-size 20
 ```
 
@@ -216,12 +218,12 @@ python3 scripts/mem0/weekly_report.py
 mem0-daily-capture:
   schedule: "0 10 * * *"  # 每天 00:10
   command: "python3 scripts/mem0/daily_capture.py"
-  user_id: vincent-main
+  user_id: "${USER_ID}"
 
 mem0-weekly-report:
   schedule: "0 23 * * 0"  # 每周日 23:00
   command: "python3 scripts/mem0/weekly_report.py"
-  user_id: vincent-main
+  user_id: "${USER_ID}"
 ```
 
 ---
@@ -358,19 +360,19 @@ git commit -m "chore: update mem0 integration"
 # 添加记忆
 python3 scripts/mem0_client.py add \
   --text "记忆内容" \
-  --user-id vincent-main \
+  --user-id "${USER_ID}" \
   --scope personal \
   --source manual
 
 # 搜索记忆
 python3 scripts/mem0_client.py search \
   --query "搜索关键词" \
-  --user-id vincent-main \
+  --user-id "${USER_ID}" \
   --top-k 10
 
 # 列出记忆
 python3 scripts/mem0_client.py list \
-  --user-id vincent-main \
+  --user-id "${USER_ID}" \
   --page-size 20
 
 # 查询事件状态
@@ -389,7 +391,7 @@ python3 scripts/mem0_client.py event \
       "command": "/path/to/claude-code-launcher.sh",
       "env": {
         "MEM0_API_KEY": "m0-your-key",
-        "MEMORY_DEFAULT_USER_ID": "vincent-main"
+        "MEMORY_DEFAULT_USER_ID": "your-user-id"
       }
     }
   }

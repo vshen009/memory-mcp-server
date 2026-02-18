@@ -13,7 +13,7 @@
 
 **示例：**
 ```bash
-cd /home/trinity/happpy/memory-mcp-server
+cd /path/to/memory-mcp-server
 ./add_memory.sh "我喜欢喝咖啡，特别是意式浓缩"
 ```
 
@@ -98,7 +98,7 @@ cd /home/trinity/happpy/memory-mcp-server
 ### 场景 1：添加一条新记忆
 
 ```bash
-cd /home/trinity/happpy/memory-mcp-server
+cd /path/to/memory-mcp-server
 ./add_memory.sh "我正在学习 Rust 编程语言"
 ```
 
@@ -165,7 +165,7 @@ sleep 10
 
 **解决：**
 ```bash
-cd /home/trinity/happpy/memory-mcp-server
+cd /path/to/memory-mcp-server
 ./add_memory.sh "测试"
 ```
 
