@@ -89,6 +89,20 @@ pwd
 
 重启 Claude Code 即可使用。
 
+> 📖 **详细指南:** [Claude Code 完整指南](docs/CLAUDE_CODE_GUIDE.md)
+
+---
+
+## 📚 文档
+
+- **[Claude Code 指南](docs/CLAUDE_CODE_GUIDE.md)** - Claude Code 集成详细教程
+- **[OpenClaw 集成](docs/OPENCLOW_INTEGRATION.md)** - OpenClaw 深度集成指南
+- **[Codex 集成](docs/CODEX_INTEGRATION.md)** - Codex AI 助手集成(开发中)
+- **[API 参考](docs/API_REFERENCE.md)** - 完整 API 文档
+- **[故障排查](docs/TROUBLESHOOTING.md)** - 常见问题解决
+
+---
+
 ## 可用工具
 
 ### memory_add
