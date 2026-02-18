@@ -1,5 +1,9 @@
 # Memory MCP Server
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
+[![MCP](https://img.shields.io/badge/MCP-Compatible-green.svg)](https://modelcontextprotocol.io/)
+
 统一的内存管理 MCP 服务器，支持 Mem0 Cloud API，可为多个 AI 客户端提供持久化记忆功能。
 
 ## 功能特性
