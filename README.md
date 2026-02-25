@@ -16,6 +16,21 @@
 - ✅ **Mem0 Cloud** - 使用云端 API，无需本地数据库
 - ✅ **一键安装** - 自动配置依赖和环境
 
+## PyPI / 自动发布（新增）
+
+本项目已支持标准 Python 打包：
+
+```bash
+python -m build
+python -m twine check dist/*.tar.gz dist/*.whl
+```
+
+- CI：`.github/workflows/ci.yml`（PR / push 自动构建并校验）
+- 发布：`.github/workflows/publish.yml`（GitHub Release 发布时自动上传 PyPI）
+- CLI 入口：`memory-mcp-server`
+
+> 发布前请先在 PyPI 项目里配置 Trusted Publishing（GitHub OIDC）。
+
 ## 一键安装
 
 ### Linux/macOS
