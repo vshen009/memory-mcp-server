@@ -11,6 +11,7 @@ import urllib.request
 import urllib.error
 import urllib.parse
 from pathlib import Path
+from typing import Optional
 
 
 class Mem0Client:
@@ -113,6 +114,41 @@ class Mem0Client:
         except Exception as e:
             return None, "", f"unexpected_error: {type(e).__name__}: {e}"
 
+    @staticmethod
+    def _extract_agent_id(item: dict) -> str:
+        """从返回条目中提取 agent_id（兼容多种结构）"""
+        if not isinstance(item, dict):
+            return ""
+        metadata = item.get("metadata")
+        if isinstance(metadata, dict):
+            value = metadata.get("agent_id")
+            if value:
+                return str(value)
+        # 兼容平铺字段
+        value = item.get("agent_id")
+        if value:
+            return str(value)
+        return ""
+
+    def _filter_by_scope_and_agent(self, items, scope: str = "", agent_id: Optional[str] = None):
+        """本地按 scope / agent_id 过滤（Cloud API 对 metadata 过滤不稳定时兜底）"""
+        if not isinstance(items, list):
+            return items
+
+        filtered = []
+        for item in items:
+            metadata = item.get("metadata") if isinstance(item, dict) else None
+            item_scope = metadata.get("scope") if isinstance(metadata, dict) else None
+            item_agent = self._extract_agent_id(item)
+
+            if scope and item_scope != scope:
+                continue
+            if agent_id and item_agent != agent_id:
+                continue
+            filtered.append(item)
+
+        return filtered
+
     def add(self, text: str, user_id: str = "default", metadata: dict = None):
         """
         添加记忆
@@ -142,7 +178,14 @@ class Mem0Client:
 
         return json.loads(text)
 
-    def search(self, query: str, user_id: str = "default", top_k: int = 5, scope: str = ""):
+    def search(
+        self,
+        query: str,
+        user_id: str = "default",
+        top_k: int = 5,
+        scope: str = "",
+        agent_id: Optional[str] = None,
+    ):
         """
         搜索记忆
 
@@ -150,24 +193,29 @@ class Mem0Client:
             query: 搜索查询
             user_id: 用户ID
             top_k: 返回结果数量
-            scope: 保留参数（暂不用于过滤，会存储在 metadata 中）
+            scope: 可选范围过滤（基于 metadata.scope）
+            agent_id: 可选 Agent ID 过滤（基于 metadata.agent_id）
 
         Returns:
             搜索结果列表
         """
+        # 当本地做过滤时，提高召回池大小，避免过滤后结果不足
+        fetch_k = top_k
+        if scope or agent_id:
+            fetch_k = max(top_k * 5, top_k)
+
         if self.api_mode == "cloud":
             payload = {
                 "query": query,
                 "filters": {"AND": [{"user_id": user_id}]},
-                "top_k": top_k,
+                "top_k": fetch_k,
             }
-            # 注意：scope 参数暂不用于 Cloud API 过滤
             code, text, err = self._call("/v2/memories/search/", payload)
         else:
             payload = {
                 "query": query,
                 "user_id": user_id,
-                "top_k": top_k,
+                "top_k": fetch_k,
             }
             if scope:
                 payload["scope"] = scope
@@ -182,32 +230,44 @@ class Mem0Client:
         result = json.loads(text)
 
         # 返回结果列表
-        if "results" in result:
-            return result["results"]
-        return result
+        items = result["results"] if "results" in result else result
+        items = self._filter_by_scope_and_agent(items, scope=scope, agent_id=agent_id)
+        if isinstance(items, list):
+            return items[:top_k]
+        return items
 
-    def list(self, user_id: str = "default", scope: str = "", limit: int = 20):
+    def list(
+        self,
+        user_id: str = "default",
+        scope: str = "",
+        limit: int = 20,
+        agent_id: Optional[str] = None,
+    ):
         """
         列出记忆
 
         Args:
             user_id: 用户ID
-            scope: 保留参数（暂不用于过滤）
+            scope: 可选范围过滤（基于 metadata.scope）
             limit: 返回结果数量限制
+            agent_id: 可选 Agent ID 过滤（基于 metadata.agent_id）
 
         Returns:
             记忆列表
         """
+        fetch_limit = limit
+        if scope or agent_id:
+            fetch_limit = max(limit * 5, limit)
+
         if self.api_mode == "cloud":
             payload = {
                 "filters": {"AND": [{"user_id": user_id}]},
                 "page": 1,
-                "page_size": limit,
+                "page_size": fetch_limit,
             }
-            # 注意：scope 参数暂不用于 Cloud API 过滤
             code, text, err = self._call("/v2/memories/", payload)
         else:
-            query = {"user_id": user_id, "limit": limit}
+            query = {"user_id": user_id, "limit": fetch_limit}
             if scope:
                 query["scope"] = scope
             code, text, err = self._call("/memories", payload=None, method="GET", query=query)
@@ -220,10 +280,11 @@ class Mem0Client:
 
         result = json.loads(text)
 
-        # 返回结果列表
-        if "results" in result:
-            return result["results"]
-        return result
+        items = result["results"] if "results" in result else result
+        items = self._filter_by_scope_and_agent(items, scope=scope, agent_id=agent_id)
+        if isinstance(items, list):
+            return items[:limit]
+        return items
 
     def delete(self, memory_id: str):
         """

@@ -66,6 +66,7 @@ nano .env
 MEM0_BASE_URL=https://api.mem0.ai
 MEM0_API_KEY=m0-your-api-key-here
 MEMORY_DEFAULT_USER_ID=your-user-id
+MEMORY_DEFAULT_AGENT_ID=trinity-main
 LOG_LEVEL=INFO
 ```
 
@@ -149,6 +150,7 @@ codex mcp list
 **参数：**
 - `text` (必需): 要记住的文本内容
 - `user_id` (可选): 用户ID，默认从环境变量读取
+- `agent_id` (可选): Agent ID，默认从环境变量读取（用于分支隔离统计）
 - `scope` (可选): 记忆范围/类别，默认 "general"
 - `source` (可选): 来源标识，默认 "mcp-server"
 
@@ -168,6 +170,7 @@ memory_add(
 **参数：**
 - `query` (必需): 搜索查询（自然语言问题）
 - `user_id` (可选): 用户ID，默认从环境变量读取
+- `agent_id` (可选): Agent ID，默认从环境变量读取（用于分支隔离统计）
 - `top_k` (可选): 返回结果数量，默认 5
 - `scope` (可选): 可选的范围过滤
 
@@ -186,6 +189,7 @@ memory_search(
 
 **参数：**
 - `user_id` (可选): 用户ID，默认从环境变量读取
+- `agent_id` (可选): Agent ID，默认从环境变量读取（用于分支隔离统计）
 - `scope` (可选): 可选的范围过滤
 - `limit` (可选): 返回结果数量限制，默认 20
 
@@ -205,6 +209,7 @@ memory_search(
 | `MEM0_API_KEY` | Mem0 API Key | - |
 | `MEM0_API_MODE` | API 模式 (cloud/oss/auto) | `auto` |
 | `MEMORY_DEFAULT_USER_ID` | 默认用户ID | `default` |
+| `MEMORY_DEFAULT_AGENT_ID` | 默认Agent ID（可选） | `` |
 | `LOG_LEVEL` | 日志级别 | `INFO` |
 
 ## 项目结构

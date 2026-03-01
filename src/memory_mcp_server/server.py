@@ -8,6 +8,7 @@ import asyncio
 import json
 import logging
 import os
+import sys
 from datetime import datetime
 from functools import partial
 from typing import List, Optional
@@ -31,9 +32,16 @@ mcp = FastMCP("memory-mcp-server")
 # 全局 mem0 客户端
 _mem0_client = None
 
+
 def get_default_user_id():
     """从环境变量获取默认用户ID"""
     return os.getenv("MEMORY_DEFAULT_USER_ID", "default")
+
+
+def get_default_agent_id():
+    """从环境变量获取默认 Agent ID（可选）"""
+    return os.getenv("MEMORY_DEFAULT_AGENT_ID", "").strip()
+
 
 def get_mem0_client():
     """获取或创建 mem0 客户端实例"""
@@ -53,18 +61,22 @@ async def run_blocking(func, *args, **kwargs):
 async def memory_add(
     text: str,
     user_id: Optional[str] = None,
+    agent_id: Optional[str] = None,
     scope: str = "general",
     source: str = "mcp-server"
 ) -> str:
-    # 使用环境变量中的默认用户ID
+    # 使用环境变量中的默认 ID
     if user_id is None:
         user_id = get_default_user_id()
+    if agent_id is None:
+        agent_id = get_default_agent_id()
     """
     添加一条新的记忆
 
     Args:
         text: 要记住的文本内容
         user_id: 用户ID（默认: default）
+        agent_id: Agent ID（默认: MEMORY_DEFAULT_AGENT_ID；可为空）
         scope: 记忆范围/类别（默认: general）
         source: 来源标识（默认: mcp-server）
 
@@ -73,15 +85,19 @@ async def memory_add(
     """
     try:
         client = get_mem0_client()
+        metadata = {
+            "scope": scope,
+            "source": source,
+            "timestamp": datetime.now().isoformat(),
+        }
+        if agent_id:
+            metadata["agent_id"] = agent_id
+
         result = await run_blocking(
             client.add,
             text=text,
             user_id=user_id,
-            metadata={
-                "scope": scope,
-                "source": source,
-                "timestamp": datetime.now().isoformat()
-            }
+            metadata=metadata
         )
         return json.dumps({
             "success": True,
@@ -101,18 +117,22 @@ async def memory_add(
 async def memory_search(
     query: str,
     user_id: Optional[str] = None,
+    agent_id: Optional[str] = None,
     top_k: int = 5,
     scope: str = ""
 ) -> str:
-    # 使用环境变量中的默认用户ID
+    # 使用环境变量中的默认 ID
     if user_id is None:
         user_id = get_default_user_id()
+    if agent_id is None:
+        agent_id = get_default_agent_id()
     """
     搜索记忆
 
     Args:
         query: 搜索查询（自然语言问题）
         user_id: 用户ID（默认: default）
+        agent_id: Agent ID（默认: MEMORY_DEFAULT_AGENT_ID；可为空）
         top_k: 返回结果数量（默认: 5）
         scope: 可选的范围过滤
 
@@ -125,6 +145,7 @@ async def memory_search(
             client.search,
             query=query,
             user_id=user_id,
+            agent_id=agent_id,
             top_k=top_k,
             scope=scope
         )
@@ -146,17 +167,21 @@ async def memory_search(
 @mcp.tool(description="列出用户的所有记忆。用于查看或批量处理记忆。")
 async def memory_list(
     user_id: Optional[str] = None,
+    agent_id: Optional[str] = None,
     scope: str = "",
     limit: int = 20
 ) -> str:
-    # 使用环境变量中的默认用户ID
+    # 使用环境变量中的默认 ID
     if user_id is None:
         user_id = get_default_user_id()
+    if agent_id is None:
+        agent_id = get_default_agent_id()
     """
     列出所有记忆
 
     Args:
         user_id: 用户ID（默认: default）
+        agent_id: Agent ID（默认: MEMORY_DEFAULT_AGENT_ID；可为空）
         scope: 可选的范围过滤
         limit: 返回结果数量限制（默认: 20）
 
@@ -168,6 +193,7 @@ async def memory_list(
         result = await run_blocking(
             client.list,
             user_id=user_id,
+            agent_id=agent_id,
             scope=scope,
             limit=limit
         )
@@ -235,6 +261,7 @@ def main():
     logger.info("🚀 Memory MCP Server 启动中...")
     logger.info(f"📝 Mem0 API Base: {os.getenv('MEM0_BASE_URL', 'https://api.mem0.ai')}")
     logger.info(f"👤 默认用户: {os.getenv('MEMORY_DEFAULT_USER_ID', 'default')}")
+    logger.info(f"🤖 默认 Agent: {os.getenv('MEMORY_DEFAULT_AGENT_ID', '(not set)')}")
 
     # 显式使用 stdio 传输，避免自动检测在某些环境下误判。
     mcp.run(transport="stdio")
