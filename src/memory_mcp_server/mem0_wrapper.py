@@ -149,6 +149,11 @@ class Mem0Client:
 
         return filtered
 
+    def add_structured_memory(self, payload: dict, user_id: str = "default", metadata: dict = None):
+        """添加结构化记忆（payload 会被 JSON 序列化后写入）。"""
+        text = json.dumps(payload, ensure_ascii=False)
+        return self.add(text=text, user_id=user_id, metadata=metadata)
+
     def add(self, text: str, user_id: str = "default", metadata: dict = None):
         """
         添加记忆

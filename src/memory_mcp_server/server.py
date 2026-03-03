@@ -17,6 +17,7 @@ from typing import List, Optional
 from mcp.server.fastmcp import FastMCP
 
 from .mem0_wrapper import Mem0Client
+from .pipelines import ChatEventPipeline
 
 # 配置日志
 logging.basicConfig(
@@ -31,6 +32,7 @@ mcp = FastMCP("memory-mcp-server")
 
 # 全局 mem0 客户端
 _mem0_client = None
+_chat_pipeline = None
 
 
 def get_default_user_id():
@@ -49,6 +51,14 @@ def get_mem0_client():
     if _mem0_client is None:
         _mem0_client = Mem0Client()
     return _mem0_client
+
+
+def get_chat_pipeline():
+    """获取或创建聊天事件记忆管道"""
+    global _chat_pipeline
+    if _chat_pipeline is None:
+        _chat_pipeline = ChatEventPipeline()
+    return _chat_pipeline
 
 
 async def run_blocking(func, *args, **kwargs):
@@ -209,6 +219,84 @@ async def memory_list(
             "success": False,
             "error": str(e),
             "message": "列出记忆失败"
+        }, ensure_ascii=False, indent=2)
+
+
+@mcp.tool(description="将聊天文本按情绪/偏好信号转成结构化记忆（episodic + preference），并应用降噪限流。")
+async def memory_ingest_chat_event(
+    text: str,
+    user_id: Optional[str] = None,
+    agent_id: Optional[str] = None,
+    location: str = "chat",
+    source: str = "chat-event-pipeline",
+) -> str:
+    if user_id is None:
+        user_id = get_default_user_id()
+    if agent_id is None:
+        agent_id = get_default_agent_id()
+
+    try:
+        client = get_mem0_client()
+        pipeline = get_chat_pipeline()
+
+        built = pipeline.build_records(
+            text=text,
+            user_id=user_id,
+            location=location,
+            actors=[user_id, agent_id or "assistant"],
+        )
+
+        if not built.get("should_store"):
+            return json.dumps({
+                "success": True,
+                "stored": False,
+                "reason": built.get("reason", "skipped"),
+                "message": "未达到写入条件，已跳过"
+            }, ensure_ascii=False, indent=2)
+
+        episodic_payload = built["episodic"]
+        preference_payload = built["preference"]
+
+        episodic_meta = {
+            "scope": "episodic",
+            "source": source,
+            "timestamp": datetime.now().isoformat(),
+        }
+        preference_meta = {
+            "scope": "preference",
+            "source": source,
+            "timestamp": datetime.now().isoformat(),
+        }
+        if agent_id:
+            episodic_meta["agent_id"] = agent_id
+            preference_meta["agent_id"] = agent_id
+
+        episodic_result = await run_blocking(
+            client.add,
+            text=json.dumps(episodic_payload, ensure_ascii=False),
+            user_id=user_id,
+            metadata=episodic_meta,
+        )
+        preference_result = await run_blocking(
+            client.add,
+            text=json.dumps(preference_payload, ensure_ascii=False),
+            user_id=user_id,
+            metadata=preference_meta,
+        )
+
+        return json.dumps({
+            "success": True,
+            "stored": True,
+            "episodic": episodic_result,
+            "preference": preference_result,
+            "message": "聊天事件已写入 episodic + preference"
+        }, ensure_ascii=False, indent=2)
+    except Exception as e:
+        logger.error(f"写入聊天事件记忆失败: {e}")
+        return json.dumps({
+            "success": False,
+            "error": str(e),
+            "message": "写入聊天事件记忆失败"
         }, ensure_ascii=False, indent=2)
 
 
