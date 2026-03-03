@@ -12,6 +12,9 @@
 - ✅ **搜索记忆** - 语义搜索已有记忆
 - ✅ **列出记忆** - 查看所有存储的记忆
 - ✅ **删除记忆** - 删除指定的记忆
+- ✅ **聊天事件入库** - 对话文本自动提取 `episodic + preference` 结构化记忆
+- ✅ **情绪识别（中文）** - 支持常见情绪/口语词识别与强度评分
+- ✅ **降噪限流** - 默认 30 分钟最多 1 条、每日最多 5 条聊天情绪记忆
 - ✅ **跨平台** - 支持 Claude Code、OpenClaw 等支持 MCP 的客户端
 - ✅ **Mem0 Cloud** - 使用云端 API，无需本地数据库
 - ✅ **一键安装** - 自动配置依赖和环境
@@ -193,6 +196,22 @@ memory_search(
 - `scope` (可选): 可选的范围过滤
 - `limit` (可选): 返回结果数量限制，默认 20
 
+### memory_ingest_chat_event
+
+将聊天文本转成结构化记忆（`episodic + preference`），并执行降噪限流。
+
+**参数：**
+- `text` (必需): 聊天文本
+- `user_id` (可选): 用户ID，默认从环境变量读取
+- `agent_id` (可选): Agent ID，默认从环境变量读取
+- `location` (可选): 事件来源位置，默认 `chat`
+- `source` (可选): 来源标识，默认 `chat-event-pipeline`
+
+**行为说明：**
+- 情绪命中才入库
+- 默认限流：30 分钟最多 1 条；每天最多 5 条
+- 写入两个 scope：`episodic` 与 `preference`
+
 ### memory_delete
 
 删除指定的记忆。
@@ -216,20 +235,28 @@ memory_search(
 
 ```
 memory-mcp-server/
-├── src/
-│   ├── server.py              # MCP 服务器主文件
-│   └── mem0_wrapper.py        # Mem0 客户端包装器
-├── venv/                      # 虚拟环境 (安装后生成)
-├── .env                       # 配置文件 (安装后生成)
-├── .env.example               # 配置文件模板
-├── requirements.txt           # Python 依赖
-├── install.sh                 # 一键安装脚本
-├── claude-code-launcher.sh    # Claude Code 启动脚本
-├── codex-launcher.sh          # Codex 启动脚本
-├── add_memory.sh              # 添加记忆测试脚本
-├── list_memory.sh             # 列出记忆测试脚本
-├── search_memory.sh           # 搜索记忆测试脚本
-└── README.md                  # 本文件
+├── src/memory_mcp_server/
+│   ├── server.py                    # MCP 服务器主文件
+│   ├── mem0_wrapper.py              # Mem0 客户端包装器
+│   ├── schemas.py                   # 结构化记忆 schema
+│   ├── emotion_lexicon_zh.py        # 中文情绪词库
+│   ├── emotion_scoring.py           # 情绪/强度/重要度打分
+│   ├── rate_limit.py                # 聊天记忆限流器
+│   └── pipelines/
+│       └── chat_event_pipeline.py   # 对话事件入库管道
+├── tests/
+│   ├── test_agent_id_filtering.py
+│   ├── test_emotion_scoring_zh.py
+│   ├── test_rate_limit.py
+│   └── test_chat_event_pipeline.py
+├── venv/                            # 虚拟环境 (安装后生成)
+├── .env                             # 配置文件 (安装后生成)
+├── .env.example                     # 配置文件模板
+├── requirements.txt                 # Python 依赖
+├── install.sh                       # 一键安装脚本
+├── claude-code-launcher.sh          # Claude Code 启动脚本
+├── codex-launcher.sh                # Codex 启动脚本
+└── README.md                        # 本文件
 ```
 
 ## 手动安装 (如安装脚本失败)
@@ -256,9 +283,15 @@ source venv/bin/activate
 python src/server.py
 ```
 
-## 测试脚本
+## 测试
 
-项目包含三个测试脚本,方便测试功能:
+### 单元测试
+
+```bash
+python3 -m unittest discover -s tests -p 'test_*.py'
+```
+
+### 快速脚本测试
 
 ```bash
 # 添加记忆
